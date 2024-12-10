@@ -1,16 +1,28 @@
 import 'package:all_service/domain/entities/usuario.dart';
+import 'package:all_service/presentation/providers/auth/user_repository_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final providerLogin = StateNotifierProvider< LogInController, bool >( (ref) => LogInController() );
+final providerLogin = StateNotifierProvider< LogInController, bool >( (ref) {
+  final userRepository = ref.watch( usuariosRepositoryProvider );
+
+  return LogInController( iniciar: userRepository.authUser );
+} );
+
+
+typedef IniciarSesion = Future<bool>Function({required Usuario usuario});
 
 class LogInController extends StateNotifier<bool> {
-  LogInController() : super(false);
+  final IniciarSesion iniciar;
+
+  LogInController({
+    required this.iniciar
+  }) : super(false);
 
   Future<void> iniciarSesion( String email, String contrasena ) async {
     final user = Usuario(email: email, contrasena: contrasena);
 
-    // TODO: Verificar si existe en la base de datos
+    iniciar( usuario: user );
 
-    state = true;
+    state = await iniciar( usuario: user );
   }
 }
